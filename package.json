@@ -1,0 +1,29 @@
+{
+  "engines": {
+    "node": ">=7.6"
+  },
+  "name": "@honeo/test",
+  "version": "1.0.0",
+  "description": "test module",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm update && cd ./test && node ./"
+  },
+  "author": "honeo",
+  "license": "MIT",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/honeo/test.git"
+  },
+  "keywords": [
+    "test",
+    "promise"
+  ],
+  "bugs": {
+    "url": "https://github.com/honeo/test/issues"
+  },
+  "homepage": "https://github.com/honeo/test#readme"
+}
