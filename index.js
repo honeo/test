@@ -16,7 +16,15 @@ try{
 	isNodejs = false;
 }
 
-function Test(callbacks, option={exit: true}){
+/*
+	本体
+*/
+function Test(callbacks, option){
+
+	// 何故かoptionにdefault引数を使うとexitが参照できなくなる
+	const isExit = option.exit===undefined ?
+		true:
+		false;
 
 	// Validation
 	if( !Array.isArray(callbacks) ){
@@ -34,7 +42,7 @@ function Test(callbacks, option={exit: true}){
 		console.log(`Test: finished in ${Date.now()-ms_start}ms`);
 	}).catch( (error)=>{
 		console.log(`Test: failed`, error);
-		if(exit && isNodejs){
+		if(isExit && isNodejs){
 			process.exit(1);
 		}else{
 			return Promise.reject(error);
@@ -53,7 +61,7 @@ async function _Test(callbacks){
 		try{
 			result = func();
 		}catch(e){
-			throw  new Error(`Failed: ${e}`);
+			throw new Error(`callback[${index}] failed\n${e}`);
 		}
 
 		// 返り値がpromiseなら解決した値に置きかえる
@@ -66,7 +74,7 @@ async function _Test(callbacks){
 		}else{
 			// 値がtrue以外なら失敗
 			if( result!==true ){
-				throw new Error(`Failed: ${result}`);
+				throw new Error(`callback[${index}] result = ${result}`);
 			}
 		}
 	}
