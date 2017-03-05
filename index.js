@@ -19,12 +19,10 @@ try{
 /*
 	本体
 */
-function Test(callbacks, option){
+function Test(callbacks, option={}){
 
-	// 何故かoptionにdefault引数を使うとexitが参照できなくなる
-	const isExit = option.exit===undefined ?
-		true:
-		false;
+	// 何故かdefault引数に含むとexitが参照できなくなる
+	const isExit = option.exit===true;
 
 	// Validation
 	if( !Array.isArray(callbacks) ){
