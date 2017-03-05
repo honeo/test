@@ -22,12 +22,16 @@ try{
 function Test(callbacks, option={}){
 
 	// 何故かdefault引数に含むとexitが参照できなくなる
-	const isExit = option.exit===true;
+	const isExit = option.exit===undefined ?
+		true:
+		option.exit;
 
-	// Validation
+	/// Validation
+	// 引数1が配列か
 	if( !Array.isArray(callbacks) ){
 		throw new TypeError(`Invalid arguments[0]: ${callbacks}`);
 	}
+	// 引数1の配列の価が全て関数か
 	callbacks.forEach( (callback, index)=>{
 		if( typeof callback!=='function'){
 			throw new TypeError(`Invalid arguments[0][${index}]: ${callback}`);
@@ -36,10 +40,12 @@ function Test(callbacks, option={}){
 
 	console.log('Test: start');
 	const ms_start = Date.now();
+
 	return _Test(callbacks).then( ()=>{
 		console.log(`Test: finished in ${Date.now()-ms_start}ms`);
 	}).catch( (error)=>{
-		console.log(`Test: failed`, error);
+		console.error(error);
+		console.log(`Test: failed`);
 		if(isExit && isNodejs){
 			process.exit(1);
 		}else{

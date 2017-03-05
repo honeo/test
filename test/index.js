@@ -9,6 +9,9 @@ const Test = require('../');
 
 // Var
 let count = 0;
+const option = {
+	exit: false
+}
 const cases = [];
 
 // 成功例
@@ -18,14 +21,14 @@ Test([function(){
 	return new Promise( (resolve, reject)=>{
 	   setTimeout(resolve, 300);
 	});
-}], {exit: false}).then( (arg)=>{
+}], option).then( (arg)=>{
 	console.log('then1');
 	count++;
 	// 失敗例
 	return new Promise( (resolve, reject)=>{
 		Test([function(){
 			return false;
-		}], {exit: false}).catch(resolve);
+		}], option).catch(resolve);
 	});
 }).then( (arg)=>{
 	console.log('then2');
@@ -36,7 +39,7 @@ Test([function(){
 			return new Promise( (resolve, reject)=>{
 				setTimeout(reject, 300, new Error('rejected'));
 			});
-		}], {exit: false}).catch(resolve);
+		}], option).catch(resolve);
 	});
 }).then( (arg)=>{
 	console.log('then3');
@@ -45,7 +48,7 @@ Test([function(){
 	return new Promise( (resolve, reject)=>{
 		Test([function(){
 			return hoge;
-		}], {exit: false}).catch(resolve);
+		}], option).catch(resolve);
 	});
 }).then( (arg)=>{
 	count++;
@@ -55,7 +58,4 @@ Test([function(){
 	}else{
 		return Promise.reject(new Error(`count: ${count}`));
 	}
-}).catch( (error)=>{
-	console.log(error);
-	process.exit(1);
 });
