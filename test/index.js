@@ -6,56 +6,62 @@ console.log(`${name} v${version}: test`);
 
 // Modules
 const Test = require('../');
+const execPromise = require('./exec-promise.js');
 
-// Var
-let count = 0;
-const option = {
-	exit: false
-}
-const cases = [];
-
-// 成功例
+// Main
 Test([function(){
-	return true;
+	// 同期、成功
+	return Test([function(){
+		return true;
+	}], {
+		exit: true,
+		prefix: 'Sub-1'
+	});
 }, function(){
-	return new Promise( (resolve, reject)=>{
-	   setTimeout(resolve, 300);
+	// 同期、失敗なら成功
+	return Test([function(){
+		return false;
+	}], {
+		exit: false,
+		prefix: 'Sub-2'
+	}).then( (arg)=>{
+		return false;
+	}).catch( (error)=>{
+		return true;
 	});
-}], option).then( (arg)=>{
-	console.log('then1');
-	count++;
-	// 失敗例
-	return new Promise( (resolve, reject)=>{
-		Test([function(){
+}, function(){
+	// 非同期、成功
+	return Test([function(){
+		return new Promise( (resolve, reject)=>{
+		    setTimeout(resolve, 100, true);
+		});
+	}], {
+		exit: false,
+		prefix: 'Sub-3'
+	});
+}, function(){
+	// 非同期、失敗なら成功
+	return Test([function(){
+		return new Promise( (resolve, reject)=>{
+		    setTimeout(reject, 100);
+		}).then( (arg)=>{
 			return false;
-		}], option).catch(resolve);
+		}).catch( (error)=>{
+			return true;
+		});
+	}], {
+		exit: false,
+		prefix: 'Sub-4'
 	});
-}).then( (arg)=>{
-	console.log('then2');
-	count++;
-	// 失敗例・非同期
-	return new Promise( (resolve, reject)=>{
-		Test([function(){
-			return new Promise( (resolve, reject)=>{
-				setTimeout(reject, 300, new Error('rejected'));
-			});
-		}], option).catch(resolve);
+}, function(){
+	// CLI 失敗してTestがexitできていれば成功
+	return execPromise('npm run test-case-failed').then( (arg)=>{
+		console.log(arg);
+		return false;
+	}).catch( (error)=>{
+		return error.message.includes('Exit status 1');
 	});
-}).then( (arg)=>{
-	console.log('then3');
-	count++;
-	// 失敗例、syntax error
-	return new Promise( (resolve, reject)=>{
-		Test([function(){
-			return hoge;
-		}], option).catch(resolve);
-	});
-}).then( (arg)=>{
-	count++;
-	const isSuccess = count===4;
-	if(isSuccess){
-		console.log('test/test finished');
-	}else{
-		return Promise.reject(new Error(`count: ${count}`));
-	}
+}], {
+	exit: true,
+	prefix: 'Main'
 });

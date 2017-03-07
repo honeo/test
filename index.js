@@ -1,30 +1,26 @@
 /*
 	本体
-		promiseを返し、callbackの返り値がtrueかresolveするpromise以外ならRejectする。
+		promiseを返し、callbackの返り値がtrueかtrueを引数にresolveするpromise以外ならRejectする。
 		Node.jsっぽければprocessを失敗させる。
 	引数
 		1: [...function]
 		2: object
 	返り値
 		promise
-
 */
-let isNodejs;
-try{
-	isNodejs = typeof process.exit==='function';
-}catch(e){
-	isNodejs = false;
-}
+
+// Var
+let isNodejs = typeof process==='object' && typeof require==='function';
 
 /*
 	本体
 */
-function Test(callbacks, option={}){
+function Test(callbacks, {exit=true, prefix=''}){
 
-	// 何故かdefault引数に含むとexitが参照できなくなる
-	const isExit = option.exit===undefined ?
-		true:
-		option.exit;
+	// あればタブ揃えする
+	const _prefix = prefix.length ?
+		`${prefix}\t`:
+		``;
 
 	/// Validation
 	// 引数1が配列か
@@ -38,15 +34,16 @@ function Test(callbacks, option={}){
 		}
 	});
 
-	console.log('Test: start');
+	console.log(`${_prefix}Test: start`);
 	const ms_start = Date.now();
 
-	return _Test(callbacks).then( ()=>{
-		console.log(`Test: finished in ${Date.now()-ms_start}ms`);
+	return _Test(callbacks, {exit, prefix: _prefix}).then( ()=>{
+		console.log(`${_prefix}Test: finished in ${Date.now()-ms_start}ms`);
+		return true;
 	}).catch( (error)=>{
 		console.error(error);
-		console.log(`Test: failed`);
-		if(isExit && isNodejs){
+		console.error(`${_prefix}Test: failed`);
+		if(exit && isNodejs){
 			process.exit(1);
 		}else{
 			return Promise.reject(error);
@@ -57,29 +54,14 @@ function Test(callbacks, option={}){
 /*
 	callbackを非同期ループするやつ
 */
-async function _Test(callbacks){
+async function _Test(callbacks, {exit, prefix}){
 	for(let [index, func] of callbacks.entries() ){
-		console.log(`case: ${index+1}/${callbacks.length}`)
+		console.log(`${prefix}case: ${index+1}/${callbacks.length}`)
 
-		let result;
-		try{
-			result = func();
-		}catch(e){
-			throw new Error(`callback[${index}] failed\n${e}`);
-		}
-
-		// 返り値がpromiseなら解決した値に置きかえる
-		if(result instanceof Promise){
-			const arg = await result.then( (arg)=>{
-				return arg;
-			}).catch( (error)=>{
-				throw error;
-			});
-		}else{
-			// 値がtrue以外なら失敗
-			if( result!==true ){
-				throw new Error(`callback[${index}] result = ${result}`);
-			}
+		// 値がtrue以外なら失敗
+		const result = await func();
+		if( result!==true ){
+			throw new Error(`callback[${index}] result = ${result}`);
 		}
 	}
 }
