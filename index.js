@@ -62,7 +62,7 @@ async function _Test(callbacks, {exit, prefix}){
 		const result = await func();
 		if( result!==true ){
 			return Promise.reject(
-				new Error(`callback[${index}] result = ${result}`)
+				new Error(`${prefix}case ${index+1}/${callbacks.length}: result = ${result}`)
 			);
 		}
 	}
