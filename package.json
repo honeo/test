@@ -3,7 +3,7 @@
     "node": ">=7.6"
   },
   "name": "@honeo/test",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "test module",
   "main": "index.js",
   "scripts": {
