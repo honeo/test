@@ -61,7 +61,9 @@ async function _Test(callbacks, {exit, prefix}){
 		// 値がtrue以外なら失敗
 		const result = await func();
 		if( result!==true ){
-			throw new Error(`callback[${index}] result = ${result}`);
+			return Promise.reject(
+				new Error(`callback[${index}] result = ${result}`)
+			);
 		}
 	}
 }
