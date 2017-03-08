@@ -15,10 +15,10 @@ let isNodejs = typeof process==='object' && typeof require==='function';
 /*
 	本体
 */
-function Test(callbacks, {exit=true, prefix=''}){
+function Test(callbacks, {exit=true, init, prefix=''}){
 
 	// あればタブ揃えする
-	const _prefix = prefix.length ?
+	const _prefix = typeof prefix==='string' && prefix.length ?
 		`${prefix}\t`:
 		``;
 
@@ -37,7 +37,7 @@ function Test(callbacks, {exit=true, prefix=''}){
 	console.log(`${_prefix}Test: start`);
 	const ms_start = Date.now();
 
-	return _Test(callbacks, {exit, prefix: _prefix}).then( ()=>{
+	return _Test(callbacks, {exit, init, prefix: _prefix}).then( ()=>{
 		console.log(`${_prefix}Test: finished in ${Date.now()-ms_start}ms`);
 		return true;
 	}).catch( (error)=>{
@@ -54,10 +54,13 @@ function Test(callbacks, {exit=true, prefix=''}){
 /*
 	callbackを非同期ループするやつ
 */
-async function _Test(callbacks, {exit, prefix}){
+async function _Test(callbacks, {exit, prefix, init}){
 	for(let [index, func] of callbacks.entries() ){
 		console.log(`${prefix}case: ${index+1}/${callbacks.length}`)
-
+		// 初期化関数があれば実行
+		if(typeof init==='function'){
+			await init();
+		}
 		// 値がtrue以外なら失敗
 		const result = await func();
 		if( result!==true ){

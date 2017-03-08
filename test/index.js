@@ -61,6 +61,18 @@ Test([function(){
 	}).catch( (error)=>{
 		return error.message.includes('Exit status 1');
 	});
+}, function(){
+	// option.init
+	let flg = false;
+	return Test([function(){
+		return flg;
+	}], {
+		exit: false,
+		init(){
+			flg = true;
+		},
+		prefix: 'Sub-6'
+	});
 }], {
 	exit: true,
 	prefix: 'Main'

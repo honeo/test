@@ -40,6 +40,7 @@ callbackの返り値が……。
 ```js
 Test([..callback], {
 	exit: true, // default, Node.jsならrejected時にプロセスも失敗させる。
+	init: function, // 各callback前に実行する初期化用関数
 	prefix: '' // console.method(prefix+text);
 });
 ```
