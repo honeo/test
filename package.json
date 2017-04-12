@@ -26,5 +26,8 @@
   "bugs": {
     "url": "https://github.com/honeo/test/issues"
   },
-  "homepage": "https://github.com/honeo/test#readme"
+  "homepage": "https://github.com/honeo/test#readme",
+  "dependencies": {
+    "fs-promise": "^2.0.2"
+  }
 }

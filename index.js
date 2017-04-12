@@ -9,13 +9,16 @@
 		promise
 */
 
+// Modules
+const fsp = require('fs-promise');
+
 // Var
 let isNodejs = typeof process==='object' && typeof require==='function';
 
 /*
 	本体
 */
-function Test(callbacks, {exit=true, init, prefix=''}){
+function Test(callbacks, {cd, exit=true, init, prefix=''}){
 
 	// あればタブ揃えする
 	const _prefix = typeof prefix==='string' && prefix.length ?
@@ -36,13 +39,22 @@ function Test(callbacks, {exit=true, init, prefix=''}){
 
 	console.log(`${_prefix}Test: start`);
 	const ms_start = Date.now();
+	const cd_start = process.cwd();
+
+	// option.cdがあれば作業ディレクトリを変更する
+	if( typeof cd==='string' ){
+		fsp.ensureDirSync(cd);
+		process.chdir(cd);
+	}
 
 	return _Test(callbacks, {exit, init, prefix: _prefix}).then( ()=>{
 		console.log(`${_prefix}Test: finished in ${Date.now()-ms_start}ms`);
+		typeof cd==='string' && process.chdir(cd_start); // 開始時のcdに戻す
 		return true;
 	}).catch( (error)=>{
 		console.error(error);
 		console.error(`${_prefix}Test: failed`);
+		typeof cd==='string' && process.chdir(cd_start); // 開始時のcdに戻す
 		if(exit && isNodejs){
 			process.exit(1);
 		}else{

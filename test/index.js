@@ -5,6 +5,7 @@ const {name, version} = require('../package.json');
 console.log(`${name} v${version}: test`);
 
 // Modules
+const path = require('path');
 const Test = require('../');
 const execPromise = require('./exec-promise.js');
 
@@ -72,6 +73,15 @@ Test([function(){
 			flg = true;
 		},
 		prefix: 'Sub-6'
+	});
+}, function(){
+	// option.cd
+	return Test([function(){
+		return path.basename(process.cwd())==='temp';
+	}], {
+		cd: './temp',
+		exit: false,
+		prefix: 'Sub-7'
 	});
 }], {
 	exit: true,

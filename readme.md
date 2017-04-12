@@ -39,6 +39,7 @@ callbackの返り値が……。
 #### option
 ```js
 Test([..callback], {
+	cd: './temp', // 作業するディレクトリ、なければ作る。
 	exit: true, // default, Node.jsならrejected時にプロセスも失敗させる。
 	init(){}, // 各callback前に実行する初期化用関数
 	prefix: '' // console.method(prefix+text);
