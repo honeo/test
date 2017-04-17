@@ -8,6 +8,7 @@ console.log(`${name} v${version}: test`);
 const path = require('path');
 const Test = require('../');
 const execPromise = require('./exec-promise.js');
+const ospath = require('ospath');
 
 // Main
 Test([function(){
@@ -72,17 +73,23 @@ Test([function(){
 		init(){
 			flg = true;
 		},
+		prefix: 'Sub-5'
+	});
+}, async function(){
+	// option.chtmpdir
+	const path_cd_before = process.cwd();
+	const bool = await Test([function(){
+		const path_cd = process.cwd();
+		console.log(path_cd);
+		return path_cd.includes(ospath.tmp()) && /test/.test(path_cd);
+	}], {
+		chtmpdir: true,
+		exit: false,
 		prefix: 'Sub-6'
 	});
-}, function(){
-	// option.cd
-	return Test([function(){
-		return path.basename(process.cwd())==='temp';
-	}], {
-		cd: './temp',
-		exit: false,
-		prefix: 'Sub-7'
-	});
+	const path_cd_after = process.cwd();
+	console.log(bool, path_cd_before, path_cd_after);
+	return bool && path_cd_before===path_cd_after;
 }], {
 	exit: true,
 	prefix: 'Main'

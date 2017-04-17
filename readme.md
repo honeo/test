@@ -19,7 +19,7 @@ const promise = Test([function(){
 	    setTimeout(resolve, 1000, true);
 	});
 }], {
-	prefix: 'example'
+	prefix: 'hoge'
 });
 ```
 
@@ -30,18 +30,15 @@ const promise = Test([function(){
 promiseを返す。
 
 #### 成否判定
-callbackの返り値が……。
-* 成功
- * true, promise{[[state]]: "fulfilled", [[value]]: true}
-* 失敗
- * その他
+callbackの返り値が以下の場合は成功とする。
+* true
+* promise{[[state]]: "fulfilled", [[value]]: true}
 
 #### option
-```js
-Test([..callback], {
-	cd: './temp', // 作業するディレクトリ、なければ作る。
-	exit: true, // default, Node.jsならrejected時にプロセスも失敗させる。
-	init(){}, // 各callback前に実行する初期化用関数
-	prefix: '' // console.method(prefix+text);
-});
-```
+
+|   key    |   type   | default |                              description                               |
+|:-------- |:-------- | ------- | ---------------------------------------------------------------------- |
+| chtmpdir | boolean  | false   | trueなら一時作業ディレクトリを作り、そこでinitやテスト関数を実行する。 |
+| exit     | boolean  | false   | 実行環境がNode.jsならテスト失敗時にプロセスも失敗させる。              |
+| init     | function |         | 各テスト関数前に実行する初期化用関数。                                 |
+| prefix   | string   | ""      | 本モジュールのconsole出力時、先頭へ追加する文字列。                    |                                                                    |

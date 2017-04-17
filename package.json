@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/honeo/test#readme",
   "dependencies": {
-    "fs-promise": "^2.0.2"
+    "fs-promise": "^2.0.2",
+    "ospath": "^1.2.2"
   }
 }

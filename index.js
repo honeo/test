@@ -11,14 +11,16 @@
 
 // Modules
 const fsp = require('fs-promise');
+const ospath = require('ospath');
+const path = require('path');
 
 // Var
-let isNodejs = typeof process==='object' && typeof require==='function';
+const isNodejs = typeof process==='object' && typeof require==='function';
 
 /*
 	本体
 */
-function Test(callbacks, {cd, exit=true, init, prefix=''}){
+function Test(callbacks, {chtmpdir=false, exit=true, init, prefix=''}){
 
 	// あればタブ揃えする
 	const _prefix = typeof prefix==='string' && prefix.length ?
@@ -40,21 +42,33 @@ function Test(callbacks, {cd, exit=true, init, prefix=''}){
 	console.log(`${_prefix}Test: start`);
 	const ms_start = Date.now();
 	const cd_start = process.cwd();
+	let path_tempDir;
 
-	// option.cdがあれば作業ディレクトリを変更する
-	if( typeof cd==='string' ){
-		fsp.ensureDirSync(cd);
-		process.chdir(cd);
+	// option.chtmpdirがあればTMPに作業ディレクトリを作る
+	if( chtmpdir===true ){
+		process.chdir(ospath.tmp());
+		const tempDirName = fsp.mkdtempSync('test');
+		path_tempDir = path.resolve('./', tempDirName);
+		process.chdir(path_tempDir);
 	}
+
 
 	return _Test(callbacks, {exit, init, prefix: _prefix}).then( ()=>{
 		console.log(`${_prefix}Test: finished in ${Date.now()-ms_start}ms`);
-		typeof cd==='string' && process.chdir(cd_start); // 開始時のcdに戻す
+		// 開始時のcdに戻して一時作業ディレクトリを削除
+		if(chtmpdir===true){
+			process.chdir(cd_start);
+			fsp.removeSync(path_tempDir);
+		}
 		return true;
 	}).catch( (error)=>{
 		console.error(error);
 		console.error(`${_prefix}Test: failed`);
-		typeof cd==='string' && process.chdir(cd_start); // 開始時のcdに戻す
+		// 開始時のcdに戻して一時作業ディレクトリを削除
+		if(chtmpdir===true){
+			process.chdir(cd_start);
+			fsp.removeSync(path_tempDir);
+		}
 		if(exit && isNodejs){
 			process.exit(1);
 		}else{
