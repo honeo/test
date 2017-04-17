@@ -5,6 +5,7 @@ const {name, version} = require('../package.json');
 console.log(`${name} v${version}: test`);
 
 // Modules
+const fs = require('fs');
 const path = require('path');
 const Test = require('../');
 const execPromise = require('./exec-promise.js');
@@ -80,15 +81,13 @@ Test([function(){
 	const path_cd_before = process.cwd();
 	const bool = await Test([function(){
 		const path_cd = process.cwd();
-		console.log(path_cd);
-		return path_cd.includes(ospath.tmp()) && /test/.test(path_cd);
+		return path_cd.includes(ospath.tmp()) && /test/.test(path_cd) && fs.existsSync(path_cd);
 	}], {
 		chtmpdir: true,
 		exit: false,
 		prefix: 'Sub-6'
 	});
 	const path_cd_after = process.cwd();
-	console.log(bool, path_cd_before, path_cd_after);
 	return bool && path_cd_before===path_cd_after;
 }], {
 	exit: true,

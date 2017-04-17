@@ -1,7 +1,7 @@
 /*
-	本体
-		promiseを返し、callbackの返り値がtrueかtrueを引数にresolveするpromise以外ならRejectする。
-		Node.jsっぽければprocessを失敗させる。
+	promiseを返し、callbackの返り値がtrueかtrueを引数にresolveするpromise以外ならRejectする。
+	Node.jsっぽければprocessを失敗させる。
+
 	引数
 		1: [...function]
 		2: object
@@ -10,6 +10,7 @@
 */
 
 // Modules
+const fs = require('fs');
 const fsp = require('fs-promise');
 const ospath = require('ospath');
 const path = require('path');
@@ -44,28 +45,28 @@ function Test(callbacks, {chtmpdir=false, exit=true, init, prefix=''}){
 	const cd_start = process.cwd();
 	let path_tempDir;
 
-	// option.chtmpdirがあればTMPに作業ディレクトリを作る
+	// option.chtmpdirがあれば、TMPに作業ディレクトリを作って移動する
 	if( chtmpdir===true ){
-		process.chdir(ospath.tmp());
-		const tempDirName = fsp.mkdtempSync('test');
-		path_tempDir = path.resolve('./', tempDirName);
+		path_tempDir = fs.mkdtempSync(path.join(ospath.tmp(), 'test-'));
 		process.chdir(path_tempDir);
 	}
 
-
 	return _Test(callbacks, {exit, init, prefix: _prefix}).then( ()=>{
 		console.log(`${_prefix}Test: finished in ${Date.now()-ms_start}ms`);
-		// 開始時のcdに戻して一時作業ディレクトリを削除
-		if(chtmpdir===true){
+		// 作業Dirが違えば戻して、一時作業ディレクトリを削除
+		if(process.cwd()!==cd_start){
 			process.chdir(cd_start);
-			fsp.removeSync(path_tempDir);
+			return fsp.remove(path_tempDir).then( ()=>{
+				return true;
+			});
+		}else{
+			return true;
 		}
-		return true;
 	}).catch( (error)=>{
 		console.error(error);
 		console.error(`${_prefix}Test: failed`);
-		// 開始時のcdに戻して一時作業ディレクトリを削除
-		if(chtmpdir===true){
+		// 作業Dirが違えば戻して、一時作業ディレクトリを削除
+		if(process.cwd()!==cd_start){
 			process.chdir(cd_start);
 			fsp.removeSync(path_tempDir);
 		}
@@ -80,7 +81,7 @@ function Test(callbacks, {chtmpdir=false, exit=true, init, prefix=''}){
 /*
 	callbackを非同期ループするやつ
 */
-async function _Test(callbacks, {exit, prefix, init}){
+async function _Test(callbacks, {prefix, init}){
 	for(let [index, func] of callbacks.entries() ){
 		console.log(`${prefix}case: ${index+1}/${callbacks.length}`)
 		// 初期化関数があれば実行
@@ -96,5 +97,6 @@ async function _Test(callbacks, {exit, prefix, init}){
 		}
 	}
 }
+
 
 module.exports = Test;
