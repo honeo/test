@@ -21,12 +21,11 @@ const isNodejs = typeof process==='object' && typeof require==='function';
 /*
 	本体
 */
-function Test(callbacks, {chtmpdir=false, exit=true, init, prefix=''}){
-
-	// あればタブ揃えする
-	const _prefix = typeof prefix==='string' && prefix.length ?
-		`${prefix}\t`:
-		``;
+function Test(callbacks, option={}){
+	const chtmpdir = option.chtmpdir || false;
+	const isConsole = option.console || true;
+	const exit = option.exit || false;
+	const init = option.init;
 
 	/// Validation
 	// 引数1が配列か
@@ -40,7 +39,7 @@ function Test(callbacks, {chtmpdir=false, exit=true, init, prefix=''}){
 		}
 	});
 
-	console.log(`${_prefix}Test: start`);
+	isConsole && console.log(`Test: start`);
 	const ms_start = Date.now();
 	const cd_start = process.cwd();
 	let path_tempDir;
@@ -51,8 +50,8 @@ function Test(callbacks, {chtmpdir=false, exit=true, init, prefix=''}){
 		process.chdir(path_tempDir);
 	}
 
-	return _Test(callbacks, {exit, init, prefix: _prefix}).then( ()=>{
-		console.log(`${_prefix}Test: finished in ${Date.now()-ms_start}ms`);
+	return _Test(callbacks, {isConsole, init}).then( ()=>{
+		isConsole && console.log(`Test: finished in ${Date.now()-ms_start}ms`);
 		// 作業Dirが違えば戻して、一時作業ディレクトリを削除
 		if(process.cwd()!==cd_start){
 			process.chdir(cd_start);
@@ -63,8 +62,8 @@ function Test(callbacks, {chtmpdir=false, exit=true, init, prefix=''}){
 			return true;
 		}
 	}).catch( (error)=>{
-		console.error(error);
-		console.error(`${_prefix}Test: failed`);
+		isConsole && console.error(error);
+		isConsole && console.error(`Test: failed`);
 		// 作業Dirが違えば戻して、一時作業ディレクトリを削除
 		if(process.cwd()!==cd_start){
 			process.chdir(cd_start);
@@ -80,10 +79,18 @@ function Test(callbacks, {chtmpdir=false, exit=true, init, prefix=''}){
 
 /*
 	callbackを非同期ループするやつ
+		引数
+			1: [..function]
+				テストする関数の配列。
+			2: object
+				Testから渡される設定オブジェクト
+		返り値
+			promise
+				テストの成否によってtrueを引数に解決するかerrorを引数に失敗する。
 */
-async function _Test(callbacks, {prefix, init}){
+async function _Test(callbacks, {isConsole, init}){
 	for(let [index, func] of callbacks.entries() ){
-		console.log(`${prefix}case: ${index+1}/${callbacks.length}`)
+		isConsole && console.log(`case: ${index+1}/${callbacks.length}`);
 		// 初期化関数があれば実行
 		if(typeof init==='function'){
 			await init();
@@ -92,7 +99,7 @@ async function _Test(callbacks, {prefix, init}){
 		const result = await func();
 		if( result!==true ){
 			return Promise.reject(
-				new Error(`${prefix}case ${index+1}/${callbacks.length}: result = ${result}`)
+				new Error(`case ${index+1}/${callbacks.length}: result = ${result}`)
 			);
 		}
 	}

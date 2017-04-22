@@ -19,7 +19,7 @@ const promise = Test([function(){
 	    setTimeout(resolve, 1000, true);
 	});
 }], {
-	prefix: 'hoge'
+	console: true
 });
 ```
 
@@ -39,6 +39,6 @@ callbackの返り値が以下の場合は成功とする。
 |   key    |   type   | default |                              description                               |
 |:-------- |:-------- | ------- | ---------------------------------------------------------------------- |
 | chtmpdir | boolean  | false   | trueなら一時作業ディレクトリを作り、そこでinitやテスト関数を実行する。 |
+| console  | boolean  | true    | Console表示の有無。                                                    |
 | exit     | boolean  | false   | 実行環境がNode.jsならテスト失敗時にプロセスも失敗させる。              |
 | init     | function |         | 各テスト関数前に実行する初期化用関数。                                 |
-| prefix   | string   | ""      | 本モジュールのconsole出力時、先頭へ追加する文字列。                    |                                                                    |
