@@ -26,6 +26,14 @@ const option_default = {
 
 /*
 	本体
+		引数
+			1: [..function]
+				テストするcallback関数の配列
+			2: op, object
+				option
+		返り値
+			promise
+				テストの成否によってtrueを引数に解決またはerrorを引数に失敗する。
 */
 function Test(callbacks, option={}){
 	const {
@@ -75,12 +83,19 @@ function Test(callbacks, option={}){
 		// 作業Dirが違えば戻して、一時作業ディレクトリを削除
 		if(process.cwd()!==cd_start){
 			process.chdir(cd_start);
-			fsp.removeSync(path_tempDir);
-		}
-		if(isExit && isNodejs){
-			process.exit(1);
+			return fsp.remove(path_tempDir).then( ()=>{
+				if(isExit && isNodejs){
+					process.exit(1);
+				}else{
+					return Promise.reject(error);
+				}
+			});
 		}else{
-			return Promise.reject(error);
+			if(isExit && isNodejs){
+				process.exit(1);
+			}else{
+				return Promise.reject(error);
+			}
 		}
 	});
 }
