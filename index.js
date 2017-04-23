@@ -17,15 +17,23 @@ const path = require('path');
 
 // Var
 const isNodejs = typeof process==='object' && typeof require==='function';
+const option_default = {
+	chtmpdir: false,
+	console: true,
+	exit: false,
+	init: null
+}
 
 /*
 	本体
 */
 function Test(callbacks, option={}){
-	const chtmpdir = option.chtmpdir || false;
-	const isConsole = option.console || true;
-	const exit = option.exit || false;
-	const init = option.init;
+	const {
+		chtmpdir: isChtmpdir,
+		console: isConsole,
+		exit: isExit,
+		init
+	} = Object.assign(option_default, option);
 
 	/// Validation
 	// 引数1が配列か
@@ -45,7 +53,7 @@ function Test(callbacks, option={}){
 	let path_tempDir;
 
 	// option.chtmpdirがあれば、TMPに作業ディレクトリを作って移動する
-	if( chtmpdir===true ){
+	if( isChtmpdir===true ){
 		path_tempDir = fs.mkdtempSync(path.join(ospath.tmp(), 'test-'));
 		process.chdir(path_tempDir);
 	}
@@ -69,7 +77,7 @@ function Test(callbacks, option={}){
 			process.chdir(cd_start);
 			fsp.removeSync(path_tempDir);
 		}
-		if(exit && isNodejs){
+		if(isExit && isNodejs){
 			process.exit(1);
 		}else{
 			return Promise.reject(error);

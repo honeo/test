@@ -12,11 +12,16 @@ const execPromise = require('./exec-promise.js');
 const ospath = require('ospath');
 
 // Main
+const option = {
+	exit: true
+}
+
 Test([function(){
 	// 同期、成功
 	return Test([function(){
 		return true;
 	}], {
+		console: false,
 		exit: true,
 		prefix: 'Sub-1'
 	});
@@ -25,6 +30,7 @@ Test([function(){
 	return Test([function(){
 		return false;
 	}], {
+		console: false,
 		exit: false,
 		prefix: 'Sub-2'
 	}).then( (arg)=>{
@@ -39,6 +45,7 @@ Test([function(){
 		    setTimeout(resolve, 100, true);
 		});
 	}], {
+		console: false,
 		exit: false,
 		prefix: 'Sub-3'
 	});
@@ -53,6 +60,7 @@ Test([function(){
 			return true;
 		});
 	}], {
+		console: false,
 		exit: false,
 		prefix: 'Sub-4'
 	});
@@ -70,6 +78,7 @@ Test([function(){
 	return Test([function(){
 		return flg;
 	}], {
+		console: false,
 		exit: false,
 		init(){
 			flg = true;
@@ -84,12 +93,10 @@ Test([function(){
 		return path_cd.includes(ospath.tmp()) && /test/.test(path_cd) && fs.existsSync(path_cd);
 	}], {
 		chtmpdir: true,
+		console: false,
 		exit: false,
 		prefix: 'Sub-6'
 	});
 	const path_cd_after = process.cwd();
 	return bool && path_cd_before===path_cd_after;
-}], {
-	exit: true,
-	prefix: 'Main'
-});
+}], option);
