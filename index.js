@@ -41,7 +41,7 @@ function Test(callbacks, option={}){
 		console: isConsole,
 		exit: isExit,
 		init
-	} = Object.assign(option_default, option);
+	} = Object.assign(Object.assign({}, option_default), option);
 
 	/// Validation
 	// 引数1が配列か
