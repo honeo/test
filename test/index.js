@@ -1,6 +1,7 @@
 /*
 	Test
-[*/
+		自身で確認するのは全然だめなのでは。
+*/
 const {name, version} = require('../package.json');
 console.log(`${name} v${version}: test`);
 
@@ -11,10 +12,15 @@ const Test = require('../');
 const execPromise = require('./exec-promise.js');
 const ospath = require('ospath');
 
-// Main
+// Var
 const option = {
 	exit: true
 }
+
+
+/*
+	Main
+*/
 
 Test([function(){
 	// 同期、成功
@@ -99,4 +105,15 @@ Test([function(){
 	});
 	const path_cd_after = process.cwd();
 	return bool && path_cd_before===path_cd_after;
+}, function(){
+	// option.tmpdirOrigin
+	return Test([function(){
+		return fs.existsSync('hoge.txt');
+	}], {
+		chtmpdir: true,
+		console: false,
+		exit: false,
+		prefix: 'Sub-7',
+		tmpdirOrigin: 'tmpdirOrigin'
+	});
 }], option);

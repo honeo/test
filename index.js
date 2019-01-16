@@ -11,7 +11,7 @@
 
 // Modules
 const fs = require('fs');
-const fsp = require('fs-promise');
+const fse = require('fs-extra');
 const ospath = require('ospath');
 const path = require('path');
 
@@ -21,7 +21,8 @@ const option_default = {
 	chtmpdir: false,
 	console: true,
 	exit: false,
-	init: null
+	init: null,
+	tmpdirOrigin: null
 }
 
 /*
@@ -35,43 +36,48 @@ const option_default = {
 			promise
 				テストの成否によってtrueを引数に解決またはerrorを引数に失敗する。
 */
-function Test(callbacks, option={}){
+function Test(callbacks, _options={}){
+	const options = Object.assign({}, option_default, _options);
 	const {
 		chtmpdir: isChtmpdir,
 		console: isConsole,
 		exit: isExit,
-		init
-	} = Object.assign(Object.assign({}, option_default), option);
+		init,
+		tmpdirOrigin
+	} = options;
+	// cwd変更前に絶対パス化
+	if( typeof options.tmpdirOrigin==='string' ){
+		options.tmpdirOrigin = path.resolve(options.tmpdirOrigin);
+	}
 
-	/// Validation
-	// 引数1が配列か
+	// Validation
 	if( !Array.isArray(callbacks) ){
-		throw new TypeError(`Invalid arguments[0]: ${callbacks}`);
+		throw new TypeError(`Invalid arguments 1: ${callbacks}`);
 	}
 	// 引数1の配列の価が全て関数か
 	callbacks.forEach( (callback, index)=>{
 		if( typeof callback!=='function'){
-			throw new TypeError(`Invalid arguments[0][${index}]: ${callback}`);
+			throw new TypeError(`Invalid arguments 1[${index}]: ${callback}`);
 		}
 	});
 
 	isConsole && console.log(`Test: start`);
 	const ms_start = Date.now();
-	const cd_start = process.cwd();
-	let path_tempDir;
+	const str_startCWDPath = process.cwd();
+	let str_tempDirPath;
 
-	// option.chtmpdirがあれば、TMPに作業ディレクトリを作って移動する
+	// options.chtmpdirがあれば、TMPに作業ディレクトリを作って移動する
 	if( isChtmpdir===true ){
-		path_tempDir = fs.mkdtempSync(path.join(ospath.tmp(), 'test-'));
-		process.chdir(path_tempDir);
+		str_tempDirPath = fs.mkdtempSync(path.join(ospath.tmp(), 'test-'));
+		process.chdir(str_tempDirPath);
 	}
 
-	return _Test(callbacks, {isConsole, init}).then( ()=>{
+	return _Test(callbacks, options).then( ()=>{
 		isConsole && console.log(`Test: finished in ${Date.now()-ms_start}ms`);
 		// 作業Dirが違えば戻して、一時作業ディレクトリを削除
-		if(process.cwd()!==cd_start){
-			process.chdir(cd_start);
-			return fsp.remove(path_tempDir).then( ()=>{
+		if(process.cwd()!==str_startCWDPath){
+			process.chdir(str_startCWDPath);
+			return fse.remove(str_tempDirPath).then( ()=>{
 				return true;
 			});
 		}else{
@@ -81,9 +87,9 @@ function Test(callbacks, option={}){
 		isConsole && console.error(error);
 		isConsole && console.error(`Test: failed`);
 		// 作業Dirが違えば戻して、一時作業ディレクトリを削除
-		if(process.cwd()!==cd_start){
-			process.chdir(cd_start);
-			return fsp.remove(path_tempDir).then( ()=>{
+		if(process.cwd()!==str_startCWDPath){
+			process.chdir(str_startCWDPath);
+			return fse.remove(str_tempDirPath).then( ()=>{
 				if(isExit && isNodejs){
 					process.exit(1);
 				}else{
@@ -111,12 +117,19 @@ function Test(callbacks, option={}){
 			promise
 				テストの成否によってtrueを引数に解決するかerrorを引数に失敗する。
 */
-async function _Test(callbacks, {isConsole, init}){
+async function _Test(callbacks, options){
 	for(let [index, func] of callbacks.entries() ){
-		isConsole && console.log(`case: ${index+1}/${callbacks.length}`);
+		options.console && console.log(`case: ${index+1}/${callbacks.length}`);
+		// 設定有効時はディレクトリ初期化・コピー
+		if( typeof options.tmpdirOrigin==='string' ){
+			await fse.emptyDir('./');
+			await fse.copy(options.tmpdirOrigin, './', {
+				preserveTimestamps: true
+			});
+		}
 		// 初期化関数があれば実行
-		if(typeof init==='function'){
-			await init();
+		if(typeof options.init==='function'){
+			await options.init();
 		}
 		// 値がtrue以外なら失敗
 		const result = await func();
