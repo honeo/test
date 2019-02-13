@@ -120,9 +120,14 @@ function Test(callbacks, _options={}){
 async function _Test(callbacks, options){
 	for(let [index, func] of callbacks.entries() ){
 		options.console && console.log(`case: ${index+1}/${callbacks.length}`);
-		// 設定有効時はディレクトリ初期化・コピー
-		if( typeof options.tmpdirOrigin==='string' ){
+
+		// 設定有効時は初期化
+		if( typeof options.chtmpdir==='string' ){
 			await fse.emptyDir('./');
+		}
+
+		// 設定有効時はコピー
+		if( typeof options.tmpdirOrigin==='string' ){
 			await fse.copy(options.tmpdirOrigin, './', {
 				preserveTimestamps: true
 			});

@@ -28,7 +28,7 @@ await Test([function(){
 
 ## API
 
-### Test([..callback] [, option])
+### Test([..callback] [, options])
 引数1配列内の関数を失敗するまで順に実行する。  
 全ての関数が成功したら解決するpromiseを返す。
 
@@ -37,10 +37,10 @@ callbackの返り値が以下の場合は成功とする。
 * true
 * promise{[[state]]: "fulfilled", [[value]]: true}
 
-#### option
+#### options
 | key          | type     | default | description                                                            |
 |:------------ |:-------- | ------- | ---------------------------------------------------------------------- |
-| chtmpdir     | boolean  | false   | trueなら一時作業ディレクトリを作り、そこでinitやテスト関数を実行する。 |
+| chtmpdir     | boolean  | false   | trueなら一時作業ディレクトリを作り、初期化してからinit・テスト関数を実行する。 |
 | console      | boolean  | true    | Console表示の有無。                                                    |
 | exit         | boolean  | false   | 実行環境がNode.jsならテスト失敗時にプロセスも失敗させる。              |
 | init         | function | null    | 各テスト関数前に実行する初期化用関数。promiseが返れば解決まで待つ。    |
