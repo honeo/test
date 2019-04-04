@@ -10,16 +10,16 @@
 */
 
 // Modules
-const fs = require('fs');
 const fse = require('fs-extra');
 const ospath = require('ospath');
 const path = require('path');
 
 // Var
 const isNodejs = typeof process==='object' && typeof require==='function';
-const option_default = {
+const obj_defaultOptions = {
 	chtmpdir: false,
 	console: true,
+	debug: false,
 	exit: false,
 	init: null,
 	tmpdirOrigin: null
@@ -37,14 +37,10 @@ const option_default = {
 				テストの成否によってtrueを引数に解決またはerrorを引数に失敗する。
 */
 function Test(callbacks, _options={}){
-	const options = Object.assign({}, option_default, _options);
-	const {
-		chtmpdir: isChtmpdir,
-		console: isConsole,
-		exit: isExit,
-		init,
-		tmpdirOrigin
-	} = options;
+	const options = {...obj_defaultOptions, ..._options}
+
+	options.debug && console.log(options);
+
 	// cwd変更前に絶対パス化
 	if( typeof options.tmpdirOrigin==='string' ){
 		options.tmpdirOrigin = path.resolve(options.tmpdirOrigin);
@@ -60,48 +56,59 @@ function Test(callbacks, _options={}){
 			throw new TypeError(`Invalid arguments 1[${index}]: ${callback}`);
 		}
 	});
+	// options.prop
+	if( typeof options.debug!=='boolean' ){
+		throw new TypeError(`Invalid arguments 2: options {debug: ${options.debug}}`);
+	}
 
-	isConsole && console.log(`Test: start`);
-	const ms_start = Date.now();
+
+	options.console && console.log(`Test: start`);
+	const num_startMs = Date.now();
+	options.debug && console.log('startMs:', num_startMs);
+
 	const str_startCWDPath = process.cwd();
+	options.debug && console.log('startCWDPath:', str_startCWDPath);
+
 	let str_tempDirPath;
 
-	// options.chtmpdirがあれば、TMPに作業ディレクトリを作って移動する
-	if( isChtmpdir===true ){
-		str_tempDirPath = fs.mkdtempSync(path.join(ospath.tmp(), 'test-'));
+	// 有効時、TMPに作業ディレクトリを作って移動
+	if( options.chtmpdir===true ){
+
+		str_tempDirPath = fse.mkdtempSync(
+			path.join(ospath.tmp(), 'test-')
+		);
+
+		options.debug && console.log('CWD change');
+		options.debug && console.log('current:', str_startCWDPath);
+		options.debug && console.log('move to:', str_tempDirPath);
+
 		process.chdir(str_tempDirPath);
 	}
 
 	return _Test(callbacks, options).then( ()=>{
-		isConsole && console.log(`Test: finished in ${Date.now()-ms_start}ms`);
-		// 作業Dirが違えば戻して、一時作業ディレクトリを削除
-		if(process.cwd()!==str_startCWDPath){
-			process.chdir(str_startCWDPath);
-			return fse.remove(str_tempDirPath).then( ()=>{
-				return true;
-			});
-		}else{
-			return true;
-		}
+		options.console && console.log(
+			`Test: finished in ${Date.now()-num_startMs}ms`
+		);
+		return true;
 	}).catch( (error)=>{
-		isConsole && console.error(error);
-		isConsole && console.error(`Test: failed`);
+		options.console && console.error(error);
+		options.console && console.error(`Test: failed`);
+
+		if(options.exit && isNodejs){
+			process.exit(1);
+		}
+		return Promise.reject(error);
+	}).finally( async ()=>{
+		options.console && console.groupEnd();
 		// 作業Dirが違えば戻して、一時作業ディレクトリを削除
-		if(process.cwd()!==str_startCWDPath){
+		const str_cdPath = process.cwd();
+		if(str_cdPath!==str_startCWDPath){
+			options.debug && console.log('CWD return');
+			options.debug && console.log('current:', str_cdPath);
+			options.debug && console.log('move to:', str_startCWDPath);
+
 			process.chdir(str_startCWDPath);
-			return fse.remove(str_tempDirPath).then( ()=>{
-				if(isExit && isNodejs){
-					process.exit(1);
-				}else{
-					return Promise.reject(error);
-				}
-			});
-		}else{
-			if(isExit && isNodejs){
-				process.exit(1);
-			}else{
-				return Promise.reject(error);
-			}
+			await fse.remove(str_tempDirPath);
 		}
 	});
 }
@@ -122,22 +129,26 @@ async function _Test(callbacks, options){
 		options.console && console.log(`case: ${index+1}/${callbacks.length}`);
 
 		// 設定有効時は初期化
-		if( typeof options.chtmpdir==='string' ){
+		if( options.chtmpdir===true ){
+			options.debug && console.log('directory clear');
 			await fse.emptyDir('./');
 		}
 
 		// 設定有効時はコピー
 		if( typeof options.tmpdirOrigin==='string' ){
+			options.debug && console.log('origin copy');
 			await fse.copy(options.tmpdirOrigin, './', {
 				preserveTimestamps: true
 			});
 		}
 		// 初期化関数があれば実行
 		if(typeof options.init==='function'){
+			options.debug && console.log('init');
 			await options.init();
 		}
 		// 値がtrue以外なら失敗
 		const result = await func();
+		options.debug && console.log(`result:`, result);
 		if( result!==true ){
 			return Promise.reject(
 				new Error(`case ${index+1}/${callbacks.length}: result = ${result}`)

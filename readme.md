@@ -38,10 +38,11 @@ callbackの返り値が以下の場合は成功とする。
 * promise{[[state]]: "fulfilled", [[value]]: true}
 
 #### options
-| key          | type     | default | description                                                            |
-|:------------ |:-------- | ------- | ---------------------------------------------------------------------- |
+| key          | type     | default | description                                                                    |
+|:------------ |:-------- | ------- | ------------------------------------------------------------------------------ |
 | chtmpdir     | boolean  | false   | trueなら一時作業ディレクトリを作り、初期化してからinit・テスト関数を実行する。 |
-| console      | boolean  | true    | Console表示の有無。                                                    |
-| exit         | boolean  | false   | 実行環境がNode.jsならテスト失敗時にプロセスも失敗させる。              |
-| init         | function | null    | 各テスト関数前に実行する初期化用関数。promiseが返れば解決まで待つ。    |
-| tmpdirOrigin | string   | null    | 各テスト開始時、実行ディレクトリに中身をコピーするディレクトリのパス。   |
+| console      | boolean  | true    | Console表示の有無。                                                            |
+| exit         | boolean  | false   | 実行環境がNode.jsならテスト失敗時にプロセスも失敗させる。                      |
+| init         | function | null    | 各テスト関数前に実行する初期化用関数。promiseが返れば解決まで待つ。            |
+| tmpdirOrigin | string   | null    | 各テスト開始時、実行ディレクトリに中身をコピーするディレクトリのパス。         |
+| debug        | boolean  | false   | Consoleにdebug情報を出す。                                                                               |

@@ -14,7 +14,8 @@ const ospath = require('ospath');
 
 // Var
 const option = {
-	exit: true
+	exit: true,
+	debug: true
 }
 
 
